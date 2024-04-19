@@ -14,6 +14,7 @@ import NavigationInstance
 from ServiceReference import ServiceReference, isPlayableForCur
 from Screens.InfoBar import InfoBar
 from Components.Sources.StreamService import StreamServiceList
+from Screens.InfoBarGenerics import streamrelayChecker
 
 # TODO: remove pNavgation, eNavigation and rewrite this stuff in python.
 
@@ -91,6 +92,9 @@ class Navigation:
 		for x in self.record_event:
 			x(rec_service, event)
 
+	def restartService(self):
+		self.playService(self.currentlyPlayingServiceOrGroup, forceRestart=True)
+
 	def playService(self, ref, checkParentalControl=True, forceRestart=False, adjust=True):
 		session = None
 		startPlayingServiceOrGroup = None
@@ -152,12 +156,10 @@ class Navigation:
 				else:
 					self.skipServiceReferenceReset = True
 				self.currentlyPlayingServiceReference = playref
-				playrefstring = playref.toString()
-				if '%3a//' not in playrefstring and playrefstring in whitelist.streamrelay:
-					url = "http://%s:%s/" % (config.misc.softcam_streamrelay_url.getHTML(), config.misc.softcam_streamrelay_port.value)
-					playref = eServiceReference("%s%s%s:%s" % (playrefstring, url.replace(":", "%3a"), playrefstring.replace(":", "%3a"), ServiceReference(playref).getServiceName()))
-					print("[Navigation] Play service via streamrelay as it is whitelisted as such" ,playref.toString())
-				
+				playref = self.streamrelayChecker(playref)
+
+				playref = streamrelayChecker(playref)
+
 				self.currentlyPlayingServiceOrGroup = ref
 				if startPlayingServiceOrGroup and startPlayingServiceOrGroup.flags & eServiceReference.isGroup and not ref.flags & eServiceReference.isGroup:
 					self.currentlyPlayingServiceOrGroup = startPlayingServiceOrGroup
@@ -223,6 +225,7 @@ class Navigation:
 		if ref:
 			if ref.flags & eServiceReference.isGroup:
 				ref = getBestPlayableServiceReference(ref, eServiceReference(), simulate)
+			ref = streamrelayChecker(ref)
 			service = ref and self.pnav and self.pnav.recordService(ref, simulate)
 			if service is None:
 				print "[Navigation] record returned non-zero"
