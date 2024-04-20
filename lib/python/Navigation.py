@@ -156,10 +156,7 @@ class Navigation:
 				else:
 					self.skipServiceReferenceReset = True
 				self.currentlyPlayingServiceReference = playref
-				playref = self.streamrelayChecker(playref)
-
 				playref = streamrelayChecker(playref)
-
 				self.currentlyPlayingServiceOrGroup = ref
 				if startPlayingServiceOrGroup and startPlayingServiceOrGroup.flags & eServiceReference.isGroup and not ref.flags & eServiceReference.isGroup:
 					self.currentlyPlayingServiceOrGroup = startPlayingServiceOrGroup
